@@ -24,7 +24,7 @@ const Sidebar = () => {
         <div className="logo-icon">
           <div className="logo-shape"></div>
         </div>
-        <h1 className="logo-text">AIReviewBDS</h1>
+        <h1 className="logo-text">MKT AI-REVIEWBDS</h1>
       </div>
       
       <nav className="nav-menu">
