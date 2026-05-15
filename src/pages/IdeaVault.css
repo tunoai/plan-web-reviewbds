@@ -1,0 +1,208 @@
+.idea-vault {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.search-container.small {
+  width: 250px;
+  padding: 6px 12px;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.categories {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.categories::-webkit-scrollbar {
+  height: 0px;
+}
+
+.category-btn {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.category-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+}
+
+.category-btn.active {
+  background-color: var(--primary);
+  color: white;
+}
+
+.filter-btn {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Masonry Grid */
+.masonry-grid {
+  column-count: 3;
+  column-gap: 20px;
+}
+
+@media (max-width: 1200px) {
+  .masonry-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .masonry-grid {
+    column-count: 1;
+  }
+}
+
+.break-inside {
+  break-inside: avoid;
+  margin-bottom: 20px;
+}
+
+.idea-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.idea-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.idea-media {
+  position: relative;
+  width: 100%;
+}
+
+.idea-img-placeholder {
+  width: 100%;
+  height: 200px; /* Base height, real masonry would vary */
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+}
+
+/* Make some cards taller to show masonry effect */
+.idea-card:nth-child(2n) .idea-img-placeholder { height: 260px; }
+.idea-card:nth-child(3n) .idea-img-placeholder { height: 180px; }
+
+.play-icon-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.idea-text-preview {
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.idea-text-preview p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mb-2 { margin-bottom: 8px; }
+
+.idea-content {
+  padding: 16px;
+}
+
+.idea-title {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.idea-link {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--primary);
+  margin-bottom: 12px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.idea-link:hover {
+  text-decoration: underline;
+}
+
+.idea-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.idea-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bookmark-btn {
+  color: var(--text-muted);
+}
+
+.bookmark-btn:hover {
+  color: var(--primary);
+}
+
+.add-idea-fab {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  width: 56px;
+  height: 56px;
+  background-color: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+  transition: transform 0.2s;
+  z-index: 100;
+}
+
+.add-idea-fab:hover {
+  transform: scale(1.05);
+  background-color: var(--primary-hover);
+}
