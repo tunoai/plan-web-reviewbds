@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, CheckSquare, Lightbulb, Calendar, FolderOpen, Archive, Search, Bell, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import TaskBoard from './pages/TaskBoard';
