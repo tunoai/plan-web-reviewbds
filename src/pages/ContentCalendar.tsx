@@ -9,11 +9,11 @@ import './ContentCalendar.css';
 const ContentCalendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState([]);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  
+
   // Form states
   const [editTitle, setEditTitle] = useState('');
   const [editLink, setEditLink] = useState('');
@@ -48,7 +48,7 @@ const ContentCalendar = () => {
   const nextMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
-  
+
   const goToToday = () => {
     setCurrentDate(new Date());
   };
@@ -137,19 +137,19 @@ const ContentCalendar = () => {
 
   const renderCells = () => {
     const cells = [];
-    
+
     // Empty cells for previous month
     for (let i = 0; i < firstDay; i++) {
       cells.push(<div key={`empty-${i}`} className="calendar-cell empty"></div>);
     }
-    
+
     // Days of current month
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const isToday = dateStr === new Date().toISOString().split('T')[0];
-      
+
       const dayEvents = events.filter(e => e.date === dateStr);
-      
+
       cells.push(
         <div key={d} className={`calendar-cell ${isToday ? 'today' : ''}`} onClick={() => openModal(dateStr)}>
           <div className="cell-header">
@@ -158,9 +158,9 @@ const ContentCalendar = () => {
           </div>
           <div className="cell-events">
             {dayEvents.map(ev => (
-              <div 
-                key={ev.id} 
-                className="event-pill" 
+              <div
+                key={ev.id}
+                className="event-pill"
                 onClick={(e) => {
                   e.stopPropagation();
                   openModal(dateStr, ev);
@@ -173,13 +173,13 @@ const ContentCalendar = () => {
         </div>
       );
     }
-    
+
     // Fill remaining cells for a complete grid (up to 42 cells)
     const totalCells = cells.length;
     for (let i = totalCells; i < 42; i++) {
       cells.push(<div key={`empty-end-${i}`} className="calendar-cell empty"></div>);
     }
-    
+
     return cells;
   };
 
@@ -195,7 +195,7 @@ const ContentCalendar = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="calendar-grid">
         <div className="calendar-days-header">
           {dayNames.map(d => <div key={d} className="day-name">{d}</div>)}
@@ -213,54 +213,54 @@ const ContentCalendar = () => {
               <button className="close-btn" onClick={closeModal}>&times;</button>
             </div>
             <div className="modal-body">
-              <input 
-                type="text" 
-                className="modal-input-title" 
-                value={editTitle} 
+              <input
+                type="text"
+                className="modal-input-title"
+                value={editTitle}
                 onChange={e => setEditTitle(e.target.value)}
-                placeholder="Tiêu đề video" 
+                placeholder="Tiêu đề video"
                 autoFocus
               />
-              
+
               <div className="modal-section">
                 <label>Link tham khảo</label>
                 <div className="input-group">
                   <LinkIcon size={18} className="input-icon" />
-                  <input 
-                    type="text" 
-                    className="modal-input" 
+                  <input
+                    type="text"
+                    className="modal-input"
                     value={editLink}
                     onChange={e => setEditLink(e.target.value)}
-                    placeholder="https://..." 
+                    placeholder="https://..."
                   />
                 </div>
               </div>
 
               <div className="modal-section">
                 <label>Mô tả chi tiết</label>
-                <textarea 
-                  className="modal-textarea" 
+                <textarea
+                  className="modal-textarea"
                   value={editDesc}
                   onChange={e => setEditDesc(e.target.value)}
                   placeholder="Nội dung kịch bản..."
                 ></textarea>
               </div>
-              
+
               <div className="modal-section">
                 <label>Ảnh đính kèm</label>
                 {editImage ? (
-                  <div style={{position: 'relative', marginTop: '8px'}}>
-                    <img src={editImage} alt="Preview" style={{width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px'}} />
-                    <button 
+                  <div style={{ position: 'relative', marginTop: '8px' }}>
+                    <img src={editImage} alt="Preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px' }} />
+                    <button
                       onClick={() => setEditImage('')}
-                      style={{position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer'}}
+                      style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
                     >
                       Xóa ảnh
                     </button>
                   </div>
                 ) : (
-                  <label className="upload-area" style={{cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.5 : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-                    <input type="file" accept="image/*" style={{display: 'none'}} onChange={handleImageUpload} disabled={isUploading} />
+                  <label className="upload-area" style={{ cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.5 : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} disabled={isUploading} />
                     <ImageIcon size={32} className="upload-icon" />
                     <span>{isUploading ? 'Đang tải lên...' : 'Click để tải ảnh lên'}</span>
                   </label>

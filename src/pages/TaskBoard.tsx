@@ -18,22 +18,22 @@ const TaskCard = ({ task, onClick }) => (
   <div className="task-card" onClick={onClick}>
     {task.imageUrl && (
       <div className="task-image">
-        <img src={task.imageUrl} alt="Cover" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+        <img src={task.imageUrl} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
     )}
     <div className="task-content">
-      <div className="task-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+      <div className="task-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <h4 className="task-title">{task.title}</h4>
-        <button className="icon-btn-small delete-task-btn" onClick={(e) => onClick(e, 'delete')} style={{color: 'var(--danger)', opacity: 0.7, padding: '2px'}}>
+        <button className="icon-btn-small delete-task-btn" onClick={(e) => onClick(e, 'delete')} style={{ color: 'var(--danger)', opacity: 0.7, padding: '2px' }}>
           <Trash2 size={14} />
         </button>
       </div>
       <div className="task-tags">
         {(task.tags || []).map((tag, idx) => {
           let tagClass = 'tag-review';
-          if(tag === 'BĐS' || tag === 'Mẹo') tagClass = 'tag-idea';
-          if(tag === 'Script' || tag === 'Update') tagClass = 'tag-script';
-          if(tag === 'Feedback') tagClass = 'tag-bds';
+          if (tag === 'BĐS' || tag === 'Mẹo') tagClass = 'tag-idea';
+          if (tag === 'Script' || tag === 'Update') tagClass = 'tag-script';
+          if (tag === 'Feedback') tagClass = 'tag-bds';
           return <span key={idx} className={`tag ${tagClass}`}>{tag}</span>
         })}
       </div>
@@ -52,7 +52,7 @@ const TaskBoard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Form states
   const [editTitle, setEditTitle] = useState('');
   const [editDesc, setEditDesc] = useState('');
@@ -198,19 +198,19 @@ const TaskBoard = () => {
               </div>
               <button className="icon-btn-small"><MoreHorizontal size={16} /></button>
             </div>
-            
+
             <div className="column-cards">
               {(groupedTasks[col.id] || []).map(task => (
-                <TaskCard 
-                  key={task.id} 
-                  task={task} 
+                <TaskCard
+                  key={task.id}
+                  task={task}
                   onClick={(e, action) => {
                     if (action === 'delete') {
                       handleDeleteTask(e, task.id);
                     } else {
                       openTaskModal(task);
                     }
-                  }} 
+                  }}
                 />
               ))}
             </div>
@@ -230,18 +230,18 @@ const TaskBoard = () => {
               <button className="close-btn" onClick={closeModal}>&times;</button>
             </div>
             <div className="modal-body">
-              <input 
-                type="text" 
-                className="modal-input-title" 
-                value={editTitle} 
+              <input
+                type="text"
+                className="modal-input-title"
+                value={editTitle}
                 onChange={e => setEditTitle(e.target.value)}
-                placeholder="Tên công việc" 
+                placeholder="Tên công việc"
                 autoFocus
               />
-              
+
               <div className="modal-section">
                 <label>Trạng thái</label>
-                <select 
+                <select
                   className="modal-select"
                   value={editStatus}
                   onChange={e => setEditStatus(e.target.value)}
@@ -255,43 +255,43 @@ const TaskBoard = () => {
 
               <div className="modal-section">
                 <label>Mô tả</label>
-                <textarea 
-                  className="modal-textarea" 
+                <textarea
+                  className="modal-textarea"
                   value={editDesc}
                   onChange={e => setEditDesc(e.target.value)}
                   placeholder="Nhập mô tả chi tiết..."
                 ></textarea>
               </div>
-              
+
               <div className="modal-section">
                 <label>Link tham khảo</label>
                 <div className="input-group">
                   <LinkIcon size={18} className="input-icon" />
-                  <input 
-                    type="text" 
-                    className="modal-input" 
+                  <input
+                    type="text"
+                    className="modal-input"
                     value={editLink}
                     onChange={e => setEditLink(e.target.value)}
-                    placeholder="https://..." 
+                    placeholder="https://..."
                   />
                 </div>
               </div>
-              
+
               <div className="modal-section">
                 <label>Ảnh đính kèm</label>
                 {editImage ? (
-                  <div style={{position: 'relative', marginTop: '8px'}}>
-                    <img src={editImage} alt="Preview" style={{width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px'}} />
-                    <button 
+                  <div style={{ position: 'relative', marginTop: '8px' }}>
+                    <img src={editImage} alt="Preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px' }} />
+                    <button
                       onClick={() => setEditImage('')}
-                      style={{position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer'}}
+                      style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
                     >
                       Xóa ảnh
                     </button>
                   </div>
                 ) : (
-                  <label className="upload-area" style={{cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.5 : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-                    <input type="file" accept="image/*" style={{display: 'none'}} onChange={handleImageUpload} disabled={isUploading} />
+                  <label className="upload-area" style={{ cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.5 : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} disabled={isUploading} />
                     <ImageIcon size={32} className="upload-icon" />
                     <span>{isUploading ? 'Đang tải lên...' : 'Click để tải ảnh lên'}</span>
                   </label>
