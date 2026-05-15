@@ -6,12 +6,12 @@ import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyALqMzccHCBK2F7_t-2XPdtuyh1V_fyJNo",
-  authDomain: "plan-mkt-webbds.firebaseapp.com",
-  projectId: "plan-mkt-webbds",
-  storageBucket: "plan-mkt-webbds.firebasestorage.app",
-  messagingSenderId: "230225291611",
-  appId: "1:230225291611:web:7e344c58d0681a12bb127e"
+  apiKey: "AIzaSyDi6CAjI0cHqtSIvYCB2H437orSoEgr2fE",
+  authDomain: "mkt-aireviewbds-02.firebaseapp.com",
+  projectId: "mkt-aireviewbds-02",
+  storageBucket: "mkt-aireviewbds-02.firebasestorage.app",
+  messagingSenderId: "183870887984",
+  appId: "1:183870887984:web:a63e1a3f949dcc394235f5"
 };
 
 // Initialize Firebase
