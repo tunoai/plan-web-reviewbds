@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, MoreHorizontal, Image as ImageIcon, Link as LinkIcon, CheckCircle2, Trash2 } from 'lucide-react';
 import { collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase';
 import './TaskBoard.css';
 
 const COLUMNS = [
@@ -56,6 +57,8 @@ const TaskBoard = () => {
   const [editDesc, setEditDesc] = useState('');
   const [editLink, setEditLink] = useState('');
   const [editStatus, setEditStatus] = useState('idea');
+  const [editImage, setEditImage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, 'tasks'), orderBy('createdAt', 'desc'));
@@ -76,6 +79,7 @@ const TaskBoard = () => {
       setEditDesc(task.description || '');
       setEditLink(task.link || '');
       setEditStatus(task.status || 'idea');
+      setEditImage(task.imageUrl || '');
       setIsEditing(true);
     } else {
       setSelectedTask(null);
@@ -83,6 +87,7 @@ const TaskBoard = () => {
       setEditDesc('');
       setEditLink('');
       setEditStatus(columnId);
+      setEditImage('');
       setIsEditing(false);
     }
     setIsModalOpen(true);
@@ -104,7 +109,26 @@ const TaskBoard = () => {
     setTimeout(() => {
       setSelectedTask(null);
       setIsEditing(false);
+      setEditImage('');
     }, 200);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const storageRef = ref(storage, `tasks_images/${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      setEditImage(url);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Lỗi khi tải ảnh lên!");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const saveTask = async () => {
@@ -115,6 +139,7 @@ const TaskBoard = () => {
       description: editDesc,
       link: editLink,
       status: editStatus,
+      imageUrl: editImage,
       tags: [], // Could add tag input later
       date: new Date().toLocaleDateString('vi-VN').substring(0, 5),
     };
@@ -244,11 +269,24 @@ const TaskBoard = () => {
               </div>
               
               <div className="modal-section">
-                <label>Ảnh đính kèm (Chưa hỗ trợ upload trực tiếp)</label>
-                <div className="upload-area">
-                  <ImageIcon size={32} className="upload-icon" />
-                  <span>Kéo thả ảnh hoặc click để tải lên</span>
-                </div>
+                <label>Ảnh đính kèm</label>
+                {editImage ? (
+                  <div style={{position: 'relative', marginTop: '8px'}}>
+                    <img src={editImage} alt="Preview" style={{width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px'}} />
+                    <button 
+                      onClick={() => setEditImage('')}
+                      style={{position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer'}}
+                    >
+                      Xóa ảnh
+                    </button>
+                  </div>
+                ) : (
+                  <label className="upload-area" style={{cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.5 : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+                    <input type="file" accept="image/*" style={{display: 'none'}} onChange={handleImageUpload} disabled={isUploading} />
+                    <ImageIcon size={32} className="upload-icon" />
+                    <span>{isUploading ? 'Đang tải lên...' : 'Click để tải ảnh lên'}</span>
+                  </label>
+                )}
               </div>
             </div>
             <div className="modal-footer">

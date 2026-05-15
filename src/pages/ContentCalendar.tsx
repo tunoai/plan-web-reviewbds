@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
 import { collection, addDoc, updateDoc, doc, onSnapshot, query, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase';
 import './ContentCalendar.css';
 
 const ContentCalendar = () => {
@@ -16,6 +17,8 @@ const ContentCalendar = () => {
   const [editTitle, setEditTitle] = useState('');
   const [editLink, setEditLink] = useState('');
   const [editDesc, setEditDesc] = useState('');
+  const [editImage, setEditImage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, 'calendar_events'));
@@ -64,11 +67,13 @@ const ContentCalendar = () => {
       setEditTitle(event.title || '');
       setEditLink(event.link || '');
       setEditDesc(event.description || '');
+      setEditImage(event.imageUrl || '');
     } else {
       setSelectedEvent(null);
       setEditTitle('');
       setEditLink('');
       setEditDesc('');
+      setEditImage('');
     }
     setIsModalOpen(true);
   };
@@ -84,6 +89,7 @@ const ContentCalendar = () => {
       title: editTitle,
       link: editLink,
       description: editDesc,
+      imageUrl: editImage,
       date: selectedDate, // Format YYYY-MM-DD
     };
 
@@ -99,6 +105,24 @@ const ContentCalendar = () => {
       closeModal();
     } catch (error) {
       console.error("Error saving event:", error);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const storageRef = ref(storage, `calendar_images/${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      setEditImage(url);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Lỗi khi tải ảnh lên!");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -215,10 +239,23 @@ const ContentCalendar = () => {
               
               <div className="modal-section">
                 <label>Ảnh đính kèm</label>
-                <div className="upload-area">
-                  <ImageIcon size={32} className="upload-icon" />
-                  <span>Kéo thả ảnh hoặc click để tải lên</span>
-                </div>
+                {editImage ? (
+                  <div style={{position: 'relative', marginTop: '8px'}}>
+                    <img src={editImage} alt="Preview" style={{width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '8px'}} />
+                    <button 
+                      onClick={() => setEditImage('')}
+                      style={{position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer'}}
+                    >
+                      Xóa ảnh
+                    </button>
+                  </div>
+                ) : (
+                  <label className="upload-area" style={{cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.5 : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+                    <input type="file" accept="image/*" style={{display: 'none'}} onChange={handleImageUpload} disabled={isUploading} />
+                    <ImageIcon size={32} className="upload-icon" />
+                    <span>{isUploading ? 'Đang tải lên...' : 'Click để tải ảnh lên'}</span>
+                  </label>
+                )}
               </div>
             </div>
             <div className="modal-footer">
