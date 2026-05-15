@@ -4,6 +4,7 @@ import { LayoutDashboard, CheckSquare, Lightbulb, Calendar, FolderOpen, Archive,
 import Dashboard from './pages/Dashboard';
 import TaskBoard from './pages/TaskBoard';
 import IdeaVault from './pages/IdeaVault';
+import ContentCalendar from './pages/ContentCalendar';
 import './App.css';
 
 const Sidebar = () => {
@@ -14,8 +15,6 @@ const Sidebar = () => {
     { path: '/tasks', label: 'Bảng công việc', icon: CheckSquare },
     { path: '/ideas', label: 'Kho ý tưởng', icon: Lightbulb },
     { path: '/calendar', label: 'Lịch nội dung', icon: Calendar },
-    { path: '/resources', label: 'Tài nguyên', icon: FolderOpen },
-    { path: '/archive', label: 'Lưu trữ', icon: Archive },
   ];
 
   return (
@@ -87,6 +86,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/tasks" element={<TaskBoard />} />
               <Route path="/ideas" element={<IdeaVault />} />
+              <Route path="/calendar" element={<ContentCalendar />} />
               <Route path="*" element={<Dashboard />} />
             </Routes>
           </div>

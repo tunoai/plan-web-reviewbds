@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, MoreHorizontal, Image as ImageIcon, Link as LinkIcon, CheckCircle2 } from 'lucide-react';
-import { collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { Plus, MoreHorizontal, Image as ImageIcon, Link as LinkIcon, CheckCircle2, Trash2 } from 'lucide-react';
+import { collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import './TaskBoard.css';
 
@@ -20,7 +20,12 @@ const TaskCard = ({ task, onClick }) => (
       </div>
     )}
     <div className="task-content">
-      <h4 className="task-title">{task.title}</h4>
+      <div className="task-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+        <h4 className="task-title">{task.title}</h4>
+        <button className="icon-btn-small delete-task-btn" onClick={(e) => onClick(e, 'delete')} style={{color: 'var(--danger)', opacity: 0.7, padding: '2px'}}>
+          <Trash2 size={14} />
+        </button>
+      </div>
       <div className="task-tags">
         {(task.tags || []).map((tag, idx) => {
           let tagClass = 'tag-review';
@@ -81,6 +86,17 @@ const TaskBoard = () => {
       setIsEditing(false);
     }
     setIsModalOpen(true);
+  };
+
+  const handleDeleteTask = async (e, id) => {
+    e.stopPropagation();
+    if (window.confirm('Bạn có chắc muốn xóa thẻ này?')) {
+      try {
+        await deleteDoc(doc(db, 'tasks', id));
+      } catch (error) {
+        console.error("Error deleting task:", error);
+      }
+    }
   };
 
   const closeModal = () => {
@@ -151,7 +167,17 @@ const TaskBoard = () => {
             
             <div className="column-cards">
               {(groupedTasks[col.id] || []).map(task => (
-                <TaskCard key={task.id} task={task} onClick={() => openTaskModal(task)} />
+                <TaskCard 
+                  key={task.id} 
+                  task={task} 
+                  onClick={(e, action) => {
+                    if (action === 'delete') {
+                      handleDeleteTask(e, task.id);
+                    } else {
+                      openTaskModal(task);
+                    }
+                  }} 
+                />
               ))}
             </div>
 
