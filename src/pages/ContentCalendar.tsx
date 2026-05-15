@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
 import { collection, addDoc, updateDoc, doc, onSnapshot, query, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import imageCompression from 'browser-image-compression';
 import { db, storage } from '../firebase';
 import './ContentCalendar.css';
 
@@ -114,8 +115,16 @@ const ContentCalendar = () => {
 
     setIsUploading(true);
     try {
-      const storageRef = ref(storage, `calendar_images/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
+      // Compress image before upload
+      const options = {
+        maxSizeMB: 0.3,
+        maxWidthOrHeight: 1280,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(file, options);
+
+      const storageRef = ref(storage, `calendar_images/${Date.now()}_${compressedFile.name}`);
+      await uploadBytes(storageRef, compressedFile);
       const url = await getDownloadURL(storageRef);
       setEditImage(url);
     } catch (error) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, MoreHorizontal, Image as ImageIcon, Link as LinkIcon, CheckCircle2, Trash2 } from 'lucide-react';
 import { collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import imageCompression from 'browser-image-compression';
 import { db, storage } from '../firebase';
 import './TaskBoard.css';
 
@@ -119,8 +120,16 @@ const TaskBoard = () => {
 
     setIsUploading(true);
     try {
-      const storageRef = ref(storage, `tasks_images/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
+      // Compress image before upload
+      const options = {
+        maxSizeMB: 0.3,
+        maxWidthOrHeight: 1280,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(file, options);
+
+      const storageRef = ref(storage, `tasks_images/${Date.now()}_${compressedFile.name}`);
+      await uploadBytes(storageRef, compressedFile);
       const url = await getDownloadURL(storageRef);
       setEditImage(url);
     } catch (error) {
