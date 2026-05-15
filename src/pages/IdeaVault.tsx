@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Search, Filter, Plus, Play, Bookmark, Image as ImageIcon, FileText } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, Plus, Play, Bookmark, Image as ImageIcon, FileText, Trash2 } from 'lucide-react';
+import { collection, onSnapshot, query, doc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import './IdeaVault.css';
 
 const MOCK_IDEAS = [
@@ -12,9 +14,16 @@ const MOCK_IDEAS = [
   { id: 7, type: 'link', title: 'Kịch bản TikTok: So sánh giá các phân khu', tags: ['Script', 'TikTok'], link: 'https://tiktok.com/@user/video/123' }
 ];
 
-const IdeaCard = ({ idea }) => {
+const IdeaCard = ({ idea, onDelete }) => {
   return (
-    <div className="idea-card break-inside">
+    <div className="idea-card break-inside" style={{position: 'relative'}}>
+      <button 
+        className="icon-btn-small" 
+        onClick={() => onDelete(idea.id)}
+        style={{position: 'absolute', top: '10px', right: '10px', zIndex: 10, backgroundColor: 'rgba(0,0,0,0.5)', color: 'var(--danger)'}}
+      >
+        <Trash2 size={16} />
+      </button>
       {idea.image && (
         <div className="idea-media">
           <div className="idea-img-placeholder"></div>
@@ -55,6 +64,35 @@ const IdeaCard = ({ idea }) => {
 const IdeaVault = () => {
   const categories = ['Tất cả', 'BĐS', 'TikTok', 'Script', 'Mẹo', 'AI'];
   const [activeCat, setActiveCat] = useState('Tất cả');
+  const [ideas, setIdeas] = useState(MOCK_IDEAS); // Fallback to mock if empty
+
+  useEffect(() => {
+    const q = query(collection(db, 'ideas'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const ideaData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setIdeas(ideaData);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Bạn có chắc muốn xóa ý tưởng này?')) {
+      try {
+        if (typeof id === 'string') { // It's a firebase ID
+          await deleteDoc(doc(db, 'ideas', id));
+        } else { // Mock data
+          setIdeas(ideas.filter(i => i.id !== id));
+        }
+      } catch (error) {
+        console.error("Error deleting idea:", error);
+      }
+    }
+  };
 
   return (
     <div className="idea-vault animate-fade-in">
@@ -89,8 +127,8 @@ const IdeaVault = () => {
       </div>
 
       <div className="masonry-grid">
-        {MOCK_IDEAS.map(idea => (
-          <IdeaCard key={idea.id} idea={idea} />
+        {ideas.map(idea => (
+          <IdeaCard key={idea.id} idea={idea} onDelete={handleDelete} />
         ))}
       </div>
 
