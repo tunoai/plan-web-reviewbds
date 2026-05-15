@@ -1,50 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, MoreHorizontal, Image as ImageIcon, Link as LinkIcon, CheckCircle2 } from 'lucide-react';
+import { collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase';
 import './TaskBoard.css';
 
-const MOCK_DATA = {
-  columns: [
-    { id: 'idea', title: 'Ý tưởng', count: 12, color: '#8b5cf6' },
-    { id: 'todo', title: 'Việc cần làm', count: 8, color: '#3b82f6' },
-    { id: 'doing', title: 'Đang làm', count: 5, color: '#f59e0b' },
-    { id: 'waiting', title: 'Đang chờ', count: 3, color: '#ef4444' },
-    { id: 'done', title: 'Hoàn thành', count: 15, color: '#10b981' },
-  ],
-  tasks: {
-    idea: [
-      { id: 1, title: 'Ý tưởng video: So sánh Vinhomes Q9 và Masteri Centre Point', date: '24/05', tags: ['BĐS', 'So sánh'], hasImage: true },
-      { id: 2, title: 'Ý tưởng: 5 lý do nên mua chung cư thay vì nhà phố', date: '22/05', tags: ['BĐS', 'Mẹo'], hasImage: false }
-    ],
-    todo: [
-      { id: 3, title: 'Review tiện ích Vinhomes Q9', date: '25/05', tags: ['Review', 'Tiện ích'], hasImage: true, avatar: true },
-      { id: 4, title: 'Update tiến độ Vinhomes Q9 T5/2024', date: '26/05', tags: ['Update'], hasImage: false }
-    ],
-    doing: [
-      { id: 5, title: 'Quay video căn hộ 2PN Vinhomes Q9', date: '24/05', tags: ['Review', 'Căn hộ'], hasImage: true, avatar: true },
-      { id: 6, title: 'Thu âm voiceover video phân tích BĐS', date: '24/05', tags: ['Voiceover'], hasImage: true }
-    ],
-    waiting: [
-      { id: 7, title: 'Chờ feedback video review Q9', date: '23/05', tags: ['Feedback'], hasImage: false, avatar: true },
-      { id: 8, title: 'Chờ duyệt thumbnail video so sánh Q9', date: '23/05', tags: ['Thumbnail'], hasImage: true }
-    ],
-    done: [
-      { id: 9, title: 'Video review tổng quan Vinhomes Q9', date: '20/05', tags: ['Review'], hasImage: true, completed: true },
-      { id: 10, title: 'Viết script video tiện ích nội khu', date: '19/05', tags: ['Script'], hasImage: false, completed: true }
-    ]
-  }
-};
+const COLUMNS = [
+  { id: 'idea', title: 'Ý tưởng', color: '#8b5cf6' },
+  { id: 'todo', title: 'Việc cần làm', color: '#3b82f6' },
+  { id: 'doing', title: 'Đang làm', color: '#f59e0b' },
+  { id: 'waiting', title: 'Đang chờ', color: '#ef4444' },
+  { id: 'done', title: 'Hoàn thành', color: '#10b981' },
+];
 
 const TaskCard = ({ task, onClick }) => (
   <div className="task-card" onClick={onClick}>
-    {task.hasImage && (
+    {task.imageUrl && (
       <div className="task-image">
-        <div className="img-placeholder"></div>
+        <img src={task.imageUrl} alt="Cover" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
       </div>
     )}
     <div className="task-content">
       <h4 className="task-title">{task.title}</h4>
       <div className="task-tags">
-        {task.tags.map((tag, idx) => {
+        {(task.tags || []).map((tag, idx) => {
           let tagClass = 'tag-review';
           if(tag === 'BĐS' || tag === 'Mẹo') tagClass = 'tag-idea';
           if(tag === 'Script' || tag === 'Update') tagClass = 'tag-script';
@@ -53,10 +31,9 @@ const TaskCard = ({ task, onClick }) => (
         })}
       </div>
       <div className="task-footer">
-        <span className="task-date">{task.date}</span>
+        <span className="task-date">{task.date || ''}</span>
         <div className="task-footer-right">
-          {task.completed && <CheckCircle2 size={16} className="text-success" />}
-          {task.avatar && <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" className="task-avatar" alt="User" />}
+          {task.status === 'done' && <CheckCircle2 size={16} className="text-success" />}
         </div>
       </div>
     </div>
@@ -64,77 +41,184 @@ const TaskCard = ({ task, onClick }) => (
 );
 
 const TaskBoard = () => {
+  const [tasks, setTasks] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Form states
+  const [editTitle, setEditTitle] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editLink, setEditLink] = useState('');
+  const [editStatus, setEditStatus] = useState('idea');
 
-  const openTaskModal = (task) => {
-    setSelectedTask(task);
+  useEffect(() => {
+    const q = query(collection(db, 'tasks'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const taskData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setTasks(taskData);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const openTaskModal = (task = null, columnId = 'idea') => {
+    if (task) {
+      setSelectedTask(task);
+      setEditTitle(task.title || '');
+      setEditDesc(task.description || '');
+      setEditLink(task.link || '');
+      setEditStatus(task.status || 'idea');
+      setIsEditing(true);
+    } else {
+      setSelectedTask(null);
+      setEditTitle('');
+      setEditDesc('');
+      setEditLink('');
+      setEditStatus(columnId);
+      setIsEditing(false);
+    }
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    setSelectedTask(null);
+    setIsModalOpen(false);
+    setTimeout(() => {
+      setSelectedTask(null);
+      setIsEditing(false);
+    }, 200);
   };
+
+  const saveTask = async () => {
+    if (!editTitle.trim()) return;
+
+    const taskData = {
+      title: editTitle,
+      description: editDesc,
+      link: editLink,
+      status: editStatus,
+      tags: [], // Could add tag input later
+      date: new Date().toLocaleDateString('vi-VN').substring(0, 5),
+    };
+
+    try {
+      if (isEditing && selectedTask) {
+        const taskRef = doc(db, 'tasks', selectedTask.id);
+        await updateDoc(taskRef, taskData);
+      } else {
+        await addDoc(collection(db, 'tasks'), {
+          ...taskData,
+          createdAt: serverTimestamp()
+        });
+      }
+      closeModal();
+    } catch (error) {
+      console.error("Error saving task:", error);
+      alert("Có lỗi xảy ra khi lưu công việc");
+    }
+  };
+
+  // Group tasks by status
+  const groupedTasks = COLUMNS.reduce((acc, col) => {
+    acc[col.id] = tasks.filter(t => t.status === col.id);
+    return acc;
+  }, {});
 
   return (
     <div className="task-board-container animate-fade-in">
       <div className="page-header">
         <h2 className="page-title">Bảng công việc</h2>
         <div className="page-actions">
-          <button className="btn-primary">
+          <button className="btn-primary" onClick={() => openTaskModal(null, 'idea')}>
             <Plus size={18} /> Thêm nhanh
           </button>
         </div>
       </div>
 
       <div className="kanban-board">
-        {MOCK_DATA.columns.map((col) => (
+        {COLUMNS.map((col) => (
           <div key={col.id} className="kanban-column">
             <div className="column-header">
               <div className="column-title-wrap">
                 <span className="column-dot" style={{ backgroundColor: col.color }}></span>
                 <h3 className="column-title">{col.title}</h3>
-                <span className="column-count">{col.count}</span>
+                <span className="column-count">{(groupedTasks[col.id] || []).length}</span>
               </div>
               <button className="icon-btn-small"><MoreHorizontal size={16} /></button>
             </div>
             
             <div className="column-cards">
-              {MOCK_DATA.tasks[col.id].map(task => (
+              {(groupedTasks[col.id] || []).map(task => (
                 <TaskCard key={task.id} task={task} onClick={() => openTaskModal(task)} />
               ))}
             </div>
 
-            <button className="add-card-btn">
+            <button className="add-card-btn" onClick={() => openTaskModal(null, col.id)}>
               <Plus size={16} /> Thêm thẻ
             </button>
           </div>
         ))}
       </div>
 
-      {selectedTask && (
+      {isModalOpen && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content glass-effect" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Chi tiết công việc</h3>
+              <h3>{isEditing ? 'Chi tiết công việc' : 'Tạo công việc mới'}</h3>
               <button className="close-btn" onClick={closeModal}>&times;</button>
             </div>
             <div className="modal-body">
-              <input type="text" className="modal-input-title" defaultValue={selectedTask.title} placeholder="Tên công việc" />
+              <input 
+                type="text" 
+                className="modal-input-title" 
+                value={editTitle} 
+                onChange={e => setEditTitle(e.target.value)}
+                placeholder="Tên công việc" 
+                autoFocus
+              />
               
               <div className="modal-section">
+                <label>Trạng thái</label>
+                <select 
+                  className="modal-select"
+                  value={editStatus}
+                  onChange={e => setEditStatus(e.target.value)}
+                  style={{ background: 'rgba(255,255,255,0.05)', color: 'white', padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', outline: 'none' }}
+                >
+                  {COLUMNS.map(col => (
+                    <option key={col.id} value={col.id}>{col.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="modal-section">
                 <label>Mô tả</label>
-                <textarea className="modal-textarea" placeholder="Nhập mô tả chi tiết..."></textarea>
+                <textarea 
+                  className="modal-textarea" 
+                  value={editDesc}
+                  onChange={e => setEditDesc(e.target.value)}
+                  placeholder="Nhập mô tả chi tiết..."
+                ></textarea>
               </div>
               
               <div className="modal-section">
                 <label>Link tham khảo</label>
                 <div className="input-group">
                   <LinkIcon size={18} className="input-icon" />
-                  <input type="text" className="modal-input" placeholder="https://..." />
+                  <input 
+                    type="text" 
+                    className="modal-input" 
+                    value={editLink}
+                    onChange={e => setEditLink(e.target.value)}
+                    placeholder="https://..." 
+                  />
                 </div>
               </div>
               
               <div className="modal-section">
-                <label>Ảnh đính kèm</label>
+                <label>Ảnh đính kèm (Chưa hỗ trợ upload trực tiếp)</label>
                 <div className="upload-area">
                   <ImageIcon size={32} className="upload-icon" />
                   <span>Kéo thả ảnh hoặc click để tải lên</span>
@@ -143,7 +227,7 @@ const TaskBoard = () => {
             </div>
             <div className="modal-footer">
               <button className="btn-outline" onClick={closeModal}>Hủy</button>
-              <button className="btn-primary" onClick={closeModal}>Lưu thay đổi</button>
+              <button className="btn-primary" onClick={saveTask}>Lưu thay đổi</button>
             </div>
           </div>
         </div>
